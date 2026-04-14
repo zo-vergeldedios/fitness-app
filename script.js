@@ -1,18 +1,20 @@
+//const { x, y } = require('z'); // import { x, y } from 'z'
 console.log("Workout List");
+
 let confirmationMessage = "";
 const url = "http://localhost:3000/list";
 // console.log(fetch(url));
 const response = fetch(url)
   .then((res) => res.json())
   .then((data) => {
-    workout = data;
+    workouts = data;
     render();
     console.log(data, "data from /list");
   })
   .catch(function (error) {
     if (error) {
       confirmationMessage = "Server Not Connected!";
-      document.getElementById("message-container").style.fontSize = "50px";
+      // document.getElementById("message-container").style.color = "red";
       // confirmationMessage.fontcolor("red");
       render();
       setTimeout(clearMessage, 5000);
@@ -52,7 +54,7 @@ let days = [
   },
 ];
 
-let workout = [];
+let workouts = [];
 function render() {
   const ul = document.querySelector("#container");
   const root = element(
@@ -77,13 +79,16 @@ function render() {
       element(
         "ul",
         { id: "workout-container" },
-        workout.map((_, i) => showWorkout(i)),
+        workouts.map((_, i) => showWorkout(i)),
       ),
       element(
         "div",
         {
           id: "message-container",
-          // style: confirmationMessage ? "" : "display: none;",
+          style:
+            confirmationMessage == "Server Not Connected!"
+              ? "color: red;"
+              : "color: white",
         },
         [confirmationMessage],
       ),
@@ -113,18 +118,22 @@ function render() {
 function savePlan() {}
 
 function addWorkout() {
+  const id = Math.floor(Math.random() * 1000000000);
   const workoutName = document.querySelector("#workout-input").value;
   const sets = document.querySelector("#sets-input").value;
   const reps = document.querySelector("#reps-input").value;
-  const weights = document.querySelector("#weights-input").value;
+  const weight = document.querySelector("#weights-input").value;
 
-  if (workoutName && sets && reps && weights) {
-    workout.push({
-      name: workoutName,
-      sets: sets,
-      reps: reps,
-      weight: weights,
-    });
+  const workout = {
+    id,
+    name: workoutName,
+    sets, // sets: sets,
+    reps,
+    weight,
+  };
+
+  if (id && workoutName && sets && reps && weight) {
+    workouts.push(workout);
   }
 
   fetch("http://localhost:3000/add", {
@@ -133,12 +142,7 @@ function addWorkout() {
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({
-      name: workoutName,
-      sets: sets,
-      reps: reps,
-      weight: weights,
-    }),
+    body: JSON.stringify(workout),
   })
     .then((res) => {
       return res.json;
@@ -162,17 +166,17 @@ function showWorkout(index) {
   return element("li", { className: "workout-list", id: `workout${index}` }, [
     element(
       "input",
-      { className: "li-info", id: `name${index}`, value: workout[index].name },
+      { className: "li-info", id: `name${index}`, value: workouts[index].name },
       [],
     ),
     element(
       "input",
-      { className: "li-info", id: `sets${index}`, value: workout[index].sets },
+      { className: "li-info", id: `sets${index}`, value: workouts[index].sets },
       [],
     ),
     element(
       "input",
-      { className: "li-info", id: `reps${index}`, value: workout[index].reps },
+      { className: "li-info", id: `reps${index}`, value: workouts[index].reps },
       [],
     ),
     element(
@@ -180,7 +184,7 @@ function showWorkout(index) {
       {
         className: "li-info",
         id: `weight${index}`,
-        value: workout[index].weight,
+        value: workouts[index].weight,
       },
       [],
     ),
@@ -207,7 +211,9 @@ function saveWorkout(index) {
   let sets = document.querySelector(`#sets${index}`).value;
   let reps = document.querySelector(`#reps${index}`).value;
   let weight = document.querySelector(`#weight${index}`).value;
-  workout.splice(index, 1, {
+  const { id } = workouts[index];
+  workouts.splice(index, 1, {
+    id: id,
     name: name,
     sets: sets,
     reps: reps,
@@ -222,6 +228,7 @@ function saveWorkout(index) {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
+      id: id,
       name: name,
       sets: sets,
       reps: reps,
@@ -248,11 +255,12 @@ function saveWorkout(index) {
   render();
   // document.querySelector("#savemessage-container").style = "";
   // console.log(document.querySelector("#savemessage-container").style);
-  console.log(workout);
+  console.log(workouts);
 }
 
 function deleteWorkout(index) {
-  workout.splice(index, 1);
+  const { id } = workouts[index];
+  workouts.splice(index, 1);
 
   // console.log({ index }, "check index");
   fetch("http://localhost:3000/delete", {
@@ -262,7 +270,7 @@ function deleteWorkout(index) {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      index: index,
+      id,
     }),
   })
     .then((res) => {
@@ -280,13 +288,13 @@ function deleteWorkout(index) {
     });
 
   render();
-  console.log(workout);
+  console.log(workouts);
 }
 
 //New features:
 // TODO
-//Show an error messsage when the server is not online. (show up in red).
-//Error, save, delete and update message should be in one element.
+//Show an error messsage when the server is not online. (show up in red). - DONE
+//Error, save, delete and update message should be in one element. - DONE
 //Link it to server. - DONE
 //Link it to supabase.
 //edit workout, - DONE
