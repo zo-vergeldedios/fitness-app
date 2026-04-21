@@ -41,7 +41,6 @@ function element(elementType, properties, children) {
   return el;
 }
 
-// let workout = { workoutName: [], sets: [], reps: [], weights: [] };
 let days = [
   {
     monday: [],
@@ -115,7 +114,10 @@ function render() {
   ul.replaceChildren(root);
 }
 
-function savePlan() {}
+// function savePlan() {
+//   //push all of the current workout to days array.
+//   //once saved the workouts will be rendered on the frontend.
+// }
 
 function addWorkout() {
   const id = Math.floor(Math.random() * 1000000000);
@@ -126,7 +128,7 @@ function addWorkout() {
 
   const workout = {
     id,
-    name: workoutName,
+    workout_name: workoutName,
     sets, // sets: sets,
     reps,
     weight,
@@ -166,7 +168,11 @@ function showWorkout(index) {
   return element("li", { className: "workout-list", id: `workout${index}` }, [
     element(
       "input",
-      { className: "li-info", id: `name${index}`, value: workouts[index].name },
+      {
+        className: "li-info",
+        id: `name${index}`,
+        value: workouts[index].workout_name,
+      },
       [],
     ),
     element(
@@ -214,7 +220,7 @@ function saveWorkout(index) {
   const { id } = workouts[index];
   workouts.splice(index, 1, {
     id: id,
-    name: name,
+    workout_name: name,
     sets: sets,
     reps: reps,
     weight: weight,
@@ -229,7 +235,7 @@ function saveWorkout(index) {
     },
     body: JSON.stringify({
       id: id,
-      name: name,
+      workout_name: name,
       sets: sets,
       reps: reps,
       weight: weight,

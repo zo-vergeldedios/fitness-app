@@ -8,30 +8,39 @@ const postgres = require("postgres"); // import postgres from 'postgres'
 app.use(cors({ origin: "*" }));
 app.use(express.json());
 
-const workoutServer = [];
+// const workoutServer = [];
 
 // check cors
 // check post (req.body, express.json())
 // check get query (req.query)
-
-app.get("/list", (req, res) => {
-  res.send(workoutServer);
-});
-
 const sql = postgres(process.env.PG_CONNECTION_STRING);
+
+async function getWorkout() {
+  return await sql`select * from fitness_app`;
+}
+//  {
+//     id: '943273713',
+//     workout_name: 'push',
+//     sets: '3',
+//     reps: '12',
+//     weight: '120'
+// name: 'push'
+
+//   },
+
+(async () => {
+  console.log(await getWorkout()); // [{name: pushups}, {name: push}, {name: back}]
+})();
+
+app.get("/list", async (req, res) => {
+  res.send(await getWorkout());
+});
 
 async function insertWorkout(id, n, s, r, w) {
   await sql`insert into fitness_app (id, workout_name, sets, reps, weight) values (${id}, ${n}, ${s}, ${r}, ${w})`;
 }
 
 app.post("/add", (req, res) => {
-  workoutServer.push({
-    id: req.body.id,
-    name: req.body.name,
-    sets: req.body.sets,
-    reps: req.body.reps,
-    weight: req.body.weight,
-  });
   insertWorkout(
     req.body.id,
     req.body.name,
@@ -39,7 +48,7 @@ app.post("/add", (req, res) => {
     req.body.reps,
     req.body.weight,
   );
-  console.log(workoutServer, "Server");
+  // console.log(workoutServer, "Server");
   res.send("Post Successfully Sent");
 });
 
@@ -51,34 +60,36 @@ app.post("/update", (req, res) => {
   // console.log(req.body);
   //TODO: Update by ID, update array and supabase.
   //Delete by ID
-  //Mr Array, 8 kyu
-  const index = workoutServer.findIndex((i) => i.id === req.body.id);
-  workoutServer.splice(index, 1, {
-    name: req.body.name,
-    sets: req.body.sets,
-    reps: req.body.reps,
-    weight: req.body.weight,
-  });
+
+  // const index = workoutServer.findIndex((i) => i.id === req.body.id);
+  // workoutServer.splice(index, 1, {
+  //   name: req.body.name,
+  //   sets: req.body.sets,
+  //   reps: req.body.reps,
+  //   weight: req.body.weight,
+  // });
+  console.log(req.body);
   updateWorkout(
     req.body.id,
-    req.body.name,
+    req.body.workout_name,
     req.body.sets,
     req.body.reps,
     req.body.weight,
   );
-  res.send({ success: "ok", data: workoutServer });
+  res.send({ success: "ok" });
 });
 
-async function deleteWorkout() {
-  await sql`delete from fitness_app where workout_name = 'pushups'`;
+async function deleteWorkout(id) {
+  await sql`delete from fitness_app where id = ${id}`;
 }
 
 app.post("/delete", (req, res) => {
-  const index = workoutServer.findIndex(
-    (workout) => workout.id === req.body.id,
-  );
-  workoutServer.splice(index, 1);
-  res.send({ success: "ok", data: workoutServer });
+  // const index = workoutServer.findIndex(
+  //   (workout) => workout.id === req.body.id,
+  // );
+  // workoutServer.splice(index, 1);
+  deleteWorkout(req.body.id);
+  res.send({ success: "ok" });
 });
 
 app.listen(port, () => {
