@@ -222,3 +222,31 @@ button:active {
   color: white;
   font-size: 15px;
 }
+
+#workoutplan-container {
+  list-style-type: none;
+}
+
+.workout-program {
+  display: flex;
+  justify-content: space-around;
+  /* padding: 10px 0; */
+  color: white;
+  font-size: 12px;
+  margin-top: 10px;
+}
+
+#workout-heading {
+  display: flex;
+  /* padding: 10px 0; */
+  justify-content: space-evenly;
+  color: #ff6a00;
+  font-size: 12px;
+  margin-top: 10px;
+}
+
+#day-heading {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+}

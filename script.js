@@ -41,19 +41,21 @@ function element(elementType, properties, children) {
   return el;
 }
 
-let days = [
-  {
-    monday: [],
-    tuesday: [],
-    wednesday: [],
-    thursday: [],
-    friday: [],
-    saturday: [],
-    sunday: [],
-  },
-];
-
 let workouts = [];
+
+// let displayedWorkouts = [];
+
+const weekdays = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
+];
+let weekdayIndex = 0;
+
 function render() {
   const ul = document.querySelector("#container");
   const root = element(
@@ -78,7 +80,9 @@ function render() {
       element(
         "ul",
         { id: "workout-container" },
-        workouts.map((_, i) => showWorkout(i)),
+        workouts
+          //.filter(wo => wo.weekdayIndex === weekdayIndex)
+          .map((_, i) => showWorkout(i)),
       ),
       element(
         "div",
@@ -91,33 +95,120 @@ function render() {
         },
         [confirmationMessage],
       ),
-      // element("h2", {}, ["Save Workout Plan"]),
-      // element("label", { for: "workout", id: "workoutplan-label" }, [
-      //   "Pick a day to save this workout:",
-      // ]),
-      // element("select", { name: "workout", id: "select-button" }, [
-      //   "Choose a day (Mon - Sun)",
-      //   element("option", { value: "Monday" }, ["Monday"]),
-      //   element("option", { value: "Tuesday" }, ["Tuesday"]),
-      //   element("option", { value: "Wednesday" }, ["Wednesday"]),
-      //   element("option", { value: "Thursday" }, ["Thursday"]),
-      //   element("option", { value: "Friday" }, ["Friday"]),
-      //   element("option", { value: "Saturday" }, ["Saturday"]),
-      //   element("option", { value: "Sunday" }, ["Sunday"]),
-      // ]),
-      // element("button", { onclick: savePlan, id: "saveworkout-button" }, [
-      //   "Save Workout Plan",
-      // ]),
+      element("h2", {}, ["Save Workout Plan"]),
+      element("label", { for: "workout", id: "workoutplan-label" }, [
+        "Pick a day to save this workout:",
+      ]),
+      element("select", { name: "workout", id: "select-button" }, [
+        "Choose a day (Mon - Sun)",
+        element("option", { value: "Monday" }, ["Monday"]),
+        element("option", { value: "Tuesday" }, ["Tuesday"]),
+        element("option", { value: "Wednesday" }, ["Wednesday"]),
+        element("option", { value: "Thursday" }, ["Thursday"]),
+        element("option", { value: "Friday" }, ["Friday"]),
+        element("option", { value: "Saturday" }, ["Saturday"]),
+        element("option", { value: "Sunday" }, ["Sunday"]),
+      ]),
+      element("button", { onclick: savePlan, id: "saveworkout-button" }, [
+        "Save Workout Plan",
+      ]),
+      element("h1", { id: "day-heading" }, [
+        "day of week: " + weekdays[weekdayIndex],
+      ]),
+      element(
+        "button",
+        {
+          onclick: () => {
+            // wdi = 6
+            //weekdayIndex++;
+            // if (weekdayIndex === 7) weekdayIndex = 0;
+            weekdayIndex = (weekdayIndex + 1) % 7;
+
+            render();
+          },
+        },
+        [">"],
+      ),
+      element(
+        "button",
+        {
+          onclick: () => {
+            // wdi = 6
+            if (weekdayIndex > 0) {
+              weekdayIndex--;
+            } else weekdayIndex = 6;
+            render();
+          },
+        },
+        ["<"],
+      ),
+      //element("h1", { id: "day-heading" }, ["Monday"]),
+      //Create an arrow that can make you choose a day
+      //Create function that takes value and returns Mon, Tues, Wed, Thurs, Fri, Sat or Sunday
+      //Each day would show the program for the day
+      element("div", { id: "workout-heading" }, [
+        element("span", { class: "workout-title" }, ["Workout"]),
+        element("span", { class: "workout-title" }, ["Sets"]),
+        element("span", { class: "workout-title" }, ["Reps"]),
+        element("span", { class: "workout-title" }, ["Weights"]),
+      ]),
+      element(
+        "ul",
+        { id: "workoutplan-container" },
+        workouts
+          .filter((wo) => wo.weekdayIndex === weekdayIndex)
+          .map((_, i) => showProgram(i)),
+      ),
     ],
   );
 
   ul.replaceChildren(root);
 }
 
-// function savePlan() {
-//   //push all of the current workout to days array.
-//   //once saved the workouts will be rendered on the frontend.
-// }
+// let day = "";
+
+function savePlan() {
+  //TODO
+  //Finish the saveplan function
+  //use try catch for update, read and delete - DONE
+  let daySelector = document.querySelector("#select-button");
+  let chosenDay = daySelector.value;
+
+  for (let i = 0; i < workouts.length; i++) {
+    workouts[i].weekdayIndex = weekdayIndex;
+    // displayedWorkouts.push({ day: chosenDay, ...workouts[i] });
+  }
+  // console.log(displayedWorkouts, "displayedWorkouts");
+
+  // for (const workout of displayedWorkouts) {
+  //   workout.day = chosenDay;
+  // }
+  // console.log(workouts);
+  // showProgram(day);
+  // day = chosenDay;
+
+  // console.log(displayedWorkouts[day]);
+
+  render();
+}
+
+function showProgram(i) {
+  // console.log(workout);
+  return element("div", { className: "workout-program" }, [
+    element("span", { class: "workout-title" }, [
+      `${displayedWorkouts[i].workout_name}`,
+    ]),
+    element("span", { class: "workout-title" }, [
+      `${displayedWorkouts[i].sets}`,
+    ]),
+    element("span", { class: "workout-title" }, [
+      `${displayedWorkouts[i].reps}`,
+    ]),
+    element("span", { class: "workout-title" }, [
+      `${displayedWorkouts[i].weight}`,
+    ]),
+  ]);
+}
 
 function addWorkout() {
   const id = Math.floor(Math.random() * 1000000000);
@@ -255,6 +346,7 @@ function saveWorkout(index) {
     })
     .catch(function (error) {
       console.log(error);
+      // errorMessage = ...
     });
 
   // showSaveMessage = true;

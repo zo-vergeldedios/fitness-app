@@ -24,8 +24,7 @@ async function getWorkout() {
 //     sets: '3',
 //     reps: '12',
 //     weight: '120'
-// name: 'push'
-
+//     name: 'push'
 //   },
 
 (async () => {
@@ -43,7 +42,7 @@ async function insertWorkout(id, n, s, r, w) {
 app.post("/add", (req, res) => {
   insertWorkout(
     req.body.id,
-    req.body.name,
+    req.body.workout_name,
     req.body.sets,
     req.body.reps,
     req.body.weight,
@@ -53,6 +52,7 @@ app.post("/add", (req, res) => {
 });
 
 async function updateWorkout(id, name, sets, reps, weight) {
+  // throw new Error("hello");
   await sql`update fitness_app set id = ${id}, workout_name = ${name}, sets = ${sets}, reps = ${reps}, weight = ${weight} where id = ${id}`;
 }
 
