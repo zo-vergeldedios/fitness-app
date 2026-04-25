@@ -248,5 +248,41 @@ button:active {
 #day-heading {
   display: flex;
   justify-content: center;
+  /* align-items: center; */
+  margin-top: 15px;
+  margin-left: 50px;
+  margin-right: 50px;
+  /* padding: 0 70px; */
+  font-size: 15px;
+  border: none;
+}
+
+#div-day-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: -35px;
+}
+
+#right-button,
+#left-button {
+  margin: 0px 15px;
+  padding: 5px 5px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.edit-button {
+  background: rgba(255, 119, 0, 0.03);
+  color: #ff6a00;
+  border: 1px solid #ff6a00;
+  border-radius: 8px;
+  font-size: 12px;
   margin-top: 10px;
+  padding: 5px 4px;
+}
+
+.edit-button:hover {
+  color: white;
+  background-color: #ff6a00;
 }

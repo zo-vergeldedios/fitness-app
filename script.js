@@ -13,7 +13,7 @@ const response = fetch(url)
   })
   .catch(function (error) {
     if (error) {
-      confirmationMessage = "Server Not Connected!";
+      confirmationMessage = "Server not Connected!";
       // document.getElementById("message-container").style.color = "red";
       // confirmationMessage.fontcolor("red");
       render();
@@ -80,18 +80,16 @@ function render() {
       element(
         "ul",
         { id: "workout-container" },
-        workouts
-          //.filter(wo => wo.weekdayIndex === weekdayIndex)
-          .map((_, i) => showWorkout(i)),
+        workouts.filter((wo) => wo.editing).map((_, i) => showWorkout(i)),
       ),
       element(
         "div",
         {
+          //x<13  ? "Child" : x<20 ? "Teenage" : x<30 ? "Twenties" : "Old people";
           id: "message-container",
-          style:
-            confirmationMessage == "Server Not Connected!"
-              ? "color: red;"
-              : "color: white",
+          style: confirmationMessage.includes("not")
+            ? "color: red;"
+            : "color: white",
         },
         [confirmationMessage],
       ),
@@ -113,35 +111,40 @@ function render() {
         "Save Workout Plan",
       ]),
       element("h1", { id: "day-heading" }, [
-        "day of week: " + weekdays[weekdayIndex],
+        "Day of Week: " + weekdays[weekdayIndex],
       ]),
-      element(
-        "button",
-        {
-          onclick: () => {
-            // wdi = 6
-            //weekdayIndex++;
-            // if (weekdayIndex === 7) weekdayIndex = 0;
-            weekdayIndex = (weekdayIndex + 1) % 7;
+      element("div", { id: "div-day-title" }, [
+        element(
+          "button",
+          {
+            id: "left-button",
+            onclick: () => {
+              // wdi = 6
+              if (weekdayIndex > 0) {
+                weekdayIndex--;
+              } else weekdayIndex = 6;
+              render();
+            },
+          },
+          ["Previous Day"],
+        ),
 
-            render();
+        element(
+          "button",
+          {
+            id: "right-button",
+            onclick: () => {
+              // wdi = 6
+              //weekdayIndex++;
+              // if (weekdayIndex === 7) weekdayIndex = 0;
+              weekdayIndex = (weekdayIndex + 1) % 7;
+
+              render();
+            },
           },
-        },
-        [">"],
-      ),
-      element(
-        "button",
-        {
-          onclick: () => {
-            // wdi = 6
-            if (weekdayIndex > 0) {
-              weekdayIndex--;
-            } else weekdayIndex = 6;
-            render();
-          },
-        },
-        ["<"],
-      ),
+          ["Next Day"],
+        ),
+      ]),
       //element("h1", { id: "day-heading" }, ["Monday"]),
       //Create an arrow that can make you choose a day
       //Create function that takes value and returns Mon, Tues, Wed, Thurs, Fri, Sat or Sunday
@@ -157,7 +160,7 @@ function render() {
         { id: "workoutplan-container" },
         workouts
           .filter((wo) => wo.weekdayIndex === weekdayIndex)
-          .map((_, i) => showProgram(i)),
+          .map((wo) => showProgram(wo)),
       ),
     ],
   );
@@ -171,13 +174,16 @@ function savePlan() {
   //TODO
   //Finish the saveplan function
   //use try catch for update, read and delete - DONE
-  let daySelector = document.querySelector("#select-button");
-  let chosenDay = daySelector.value;
+  // let daySelector = document.querySelector("#select-button");
+  // let chosenDay = daySelector.value;
 
-  for (let i = 0; i < workouts.length; i++) {
-    workouts[i].weekdayIndex = weekdayIndex;
-    // displayedWorkouts.push({ day: chosenDay, ...workouts[i] });
+  for (const wo of workouts) {
+    if (wo.editing) {
+      wo.editing = false;
+      wo.weekdayIndex = weekdayIndex;
+    }
   }
+
   // console.log(displayedWorkouts, "displayedWorkouts");
 
   // for (const workout of displayedWorkouts) {
@@ -192,30 +198,34 @@ function savePlan() {
   render();
 }
 
-function showProgram(i) {
-  // console.log(workout);
-  return element("div", { className: "workout-program" }, [
-    element("span", { class: "workout-title" }, [
-      `${displayedWorkouts[i].workout_name}`,
+function showProgram(wo) {
+  let program = element("div", { className: "workout-div" }, [
+    element("div", { className: "workout-program" }, [
+      element("span", { className: "workout-title" }, [`${wo.workout_name}`]),
+      element("span", { className: "workout-title" }, [`${wo.sets}`]),
+      element("span", { className: "workout-title" }, [`${wo.reps}`]),
+      element("span", { className: "workout-title" }, [`${wo.weight}`]),
     ]),
-    element("span", { class: "workout-title" }, [
-      `${displayedWorkouts[i].sets}`,
-    ]),
-    element("span", { class: "workout-title" }, [
-      `${displayedWorkouts[i].reps}`,
-    ]),
-    element("span", { class: "workout-title" }, [
-      `${displayedWorkouts[i].weight}`,
-    ]),
+    element(
+      "button",
+      { className: "edit-button", onclick: () => editProgram },
+      ["Edit Program"],
+    ),
   ]);
-}
 
+  // console.log(workout);
+  return program;
+}
+function editProgram() {
+  return "TODO";
+}
 function addWorkout() {
   const id = Math.floor(Math.random() * 1000000000);
   const workoutName = document.querySelector("#workout-input").value;
   const sets = document.querySelector("#sets-input").value;
   const reps = document.querySelector("#reps-input").value;
   const weight = document.querySelector("#weights-input").value;
+  let editing = true;
 
   const workout = {
     id,
@@ -223,9 +233,10 @@ function addWorkout() {
     sets, // sets: sets,
     reps,
     weight,
+    editing,
   };
 
-  if (id && workoutName && sets && reps && weight) {
+  if (id && workoutName && sets && reps && weight && editing) {
     workouts.push(workout);
   }
 
@@ -243,11 +254,19 @@ function addWorkout() {
     .then((data) => {
       confirmationMessage = "Workout Saved!";
       render();
-      setTimeout(clearMessage, 3000);
-      setTimeout(render, 3500);
+      setTimeout(clearMessage, 1500);
+      setTimeout(render, 2000);
       console.log(data);
     })
     .catch(function (error) {
+      if (error) {
+        confirmationMessage = "Workout not added!";
+        // document.getElementById("message-container").style.color = "red";
+        // confirmationMessage.fontcolor("red");
+        render();
+        setTimeout(clearMessage, 5000);
+        setTimeout(render, 5500);
+      }
       console.log(error);
     });
 
@@ -315,6 +334,7 @@ function saveWorkout(index) {
     sets: sets,
     reps: reps,
     weight: weight,
+    editing: false,
   });
 
   console.log({ index }, "check index");
@@ -331,6 +351,7 @@ function saveWorkout(index) {
       reps: reps,
       weight: weight,
       index: index,
+      editing: editing,
     }),
   })
     .then((res) => {
@@ -339,14 +360,19 @@ function saveWorkout(index) {
     .then((data) => {
       confirmationMessage = "Workout Updated!";
       render();
-      setTimeout(clearMessage, 3000);
-      setTimeout(render, 3500);
+      setTimeout(clearMessage, 1500);
+      setTimeout(render, 2000);
 
       console.log(data);
     })
     .catch(function (error) {
+      if (error) {
+        confirmationMessage = "Workout not updated!";
+        render();
+        setTimeout(clearMessage, 5000);
+        setTimeout(render, 5500);
+      }
       console.log(error);
-      // errorMessage = ...
     });
 
   // showSaveMessage = true;
@@ -377,11 +403,17 @@ function deleteWorkout(index) {
     .then((data) => {
       confirmationMessage = "Workout Deleted!";
       render();
-      setTimeout(clearMessage, 3000);
-      setTimeout(render, 3500);
+      setTimeout(clearMessage, 1500);
+      setTimeout(render, 2000);
       console.log(data);
     })
     .catch(function (error) {
+      if (error) {
+        confirmationMessage = "Workout not deleted!";
+        render();
+        setTimeout(clearMessage, 5000);
+        setTimeout(render, 5500);
+      }
       console.log(error);
     });
 
@@ -394,7 +426,7 @@ function deleteWorkout(index) {
 //Show an error messsage when the server is not online. (show up in red). - DONE
 //Error, save, delete and update message should be in one element. - DONE
 //Link it to server. - DONE
-//Link it to supabase.
+//Link it to supabase. - DONE
 //edit workout, - DONE
 //save button, - DONE - created an if statement so it doesn't save when one of the fields are empty.
 

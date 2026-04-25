@@ -35,8 +35,8 @@ app.get("/list", async (req, res) => {
   res.send(await getWorkout());
 });
 
-async function insertWorkout(id, n, s, r, w) {
-  await sql`insert into fitness_app (id, workout_name, sets, reps, weight) values (${id}, ${n}, ${s}, ${r}, ${w})`;
+async function insertWorkout(id, n, s, r, w, e) {
+  await sql`insert into fitness_app (id, workout_name, sets, reps, weight, editing) values (${id}, ${n}, ${s}, ${r}, ${w}, ${e})`;
 }
 
 app.post("/add", (req, res) => {
@@ -46,14 +46,15 @@ app.post("/add", (req, res) => {
     req.body.sets,
     req.body.reps,
     req.body.weight,
+    req.body.editing,
   );
   // console.log(workoutServer, "Server");
   res.send("Post Successfully Sent");
 });
 
-async function updateWorkout(id, name, sets, reps, weight) {
+async function updateWorkout(id, name, sets, reps, weight, editing) {
   // throw new Error("hello");
-  await sql`update fitness_app set id = ${id}, workout_name = ${name}, sets = ${sets}, reps = ${reps}, weight = ${weight} where id = ${id}`;
+  await sql`update fitness_app set id = ${id}, workout_name = ${name}, sets = ${sets}, reps = ${reps}, weight = ${weight}, editing = ${editing} where id = ${id}`;
 }
 
 app.post("/update", (req, res) => {
@@ -75,6 +76,7 @@ app.post("/update", (req, res) => {
     req.body.sets,
     req.body.reps,
     req.body.weight,
+    req.body.editing,
   );
   res.send({ success: "ok" });
 });
