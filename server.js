@@ -16,7 +16,28 @@ app.use(express.json());
 const sql = postgres(process.env.PG_CONNECTION_STRING);
 
 async function getWorkout() {
-  return await sql`select * from fitness_app`;
+  const result = await sql`select * from fitness_app`;
+
+  // const wo = {
+  //   id: '943273713',
+  //   workout_name: 'push',
+  //   sets: '3',
+  //   reps: '12',
+  //   weight: '120'
+  //   editing: true,
+  //   weekday_index: '0'
+  // }
+  return result.map((wo) => ({
+    id: Number(wo.id),
+    workout_name: wo.workout_name,
+    sets: Number(wo.sets),
+    reps: Number(wo.reps),
+    weight: Number(wo.weight),
+    editing: wo.editing,
+    weekdayIndex: Number(wo.weekday_index),
+  }));
+
+  //return result.map()
 }
 //  {
 //     id: '943273713',
@@ -24,12 +45,23 @@ async function getWorkout() {
 //     sets: '3',
 //     reps: '12',
 //     weight: '120'
-//     name: 'push'
+//     name: 'push',
+//     weekday_index: 0,
 //   },
 
-(async () => {
-  console.log(await getWorkout()); // [{name: pushups}, {name: push}, {name: back}]
-})();
+//   {
+//     id: 943273713,
+//     workout_name: 'push',
+//     sets: 3,
+//     reps: 12,
+//     weight: 120
+//     name: 'push',
+//     weekdayIndex: 0,
+//   },
+
+// (async () => {
+//   console.log(await getWorkout()); // [{name: pushups}, {name: push}, {name: back}]
+// })();
 
 app.get("/list", async (req, res) => {
   res.send(await getWorkout());
@@ -52,9 +84,26 @@ app.post("/add", (req, res) => {
   res.send("Post Successfully Sent");
 });
 
-async function updateWorkout(id, name, sets, reps, weight, editing) {
+async function updateWorkout(
+  id,
+  name,
+  sets,
+  reps,
+  weight,
+  editing,
+  weekdayIndex,
+) {
   // throw new Error("hello");
-  await sql`update fitness_app set id = ${id}, workout_name = ${name}, sets = ${sets}, reps = ${reps}, weight = ${weight}, editing = ${editing} where id = ${id}`;
+  await sql`
+    update fitness_app 
+    set id = ${id},
+        workout_name = ${name},
+        sets = ${sets},
+        reps = ${reps},
+        weight = ${weight},
+        editing = ${editing}, 
+        weekday_index = ${weekdayIndex} 
+    where id = ${id}`;
 }
 
 app.post("/update", (req, res) => {
@@ -77,6 +126,7 @@ app.post("/update", (req, res) => {
     req.body.reps,
     req.body.weight,
     req.body.editing,
+    req.body.weekday_index,
   );
   res.send({ success: "ok" });
 });

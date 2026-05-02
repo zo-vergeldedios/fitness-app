@@ -8,8 +8,10 @@ const response = fetch(url)
   .then((res) => res.json())
   .then((data) => {
     workouts = data;
+
     render();
     console.log(data, "data from /list");
+    console.log(workouts, "workout from /list");
   })
   .catch(function (error) {
     if (error) {
@@ -107,9 +109,16 @@ function render() {
         element("option", { value: "Saturday" }, ["Saturday"]),
         element("option", { value: "Sunday" }, ["Sunday"]),
       ]),
-      element("button", { onclick: savePlan, id: "saveworkout-button" }, [
-        "Save Workout Plan",
-      ]),
+      element(
+        "button",
+        {
+          onclick: () => {
+            workouts.filter((wo) => wo.editing).map((_, i) => updateWorkout(i));
+          },
+          id: "saveworkout-button",
+        },
+        ["Save Workout Plan"],
+      ),
       element("h1", { id: "day-heading" }, [
         "Day of Week: " + weekdays[weekdayIndex],
       ]),
@@ -159,8 +168,21 @@ function render() {
         "ul",
         { id: "workoutplan-container" },
         workouts
+          //                wo.weekday_index
           .filter((wo) => wo.weekdayIndex === weekdayIndex)
           .map((wo) => showProgram(wo)),
+      ),
+      element(
+        "button",
+        {
+          className: "edit-button",
+          onclick: () => {
+            workouts
+              .filter((wo) => wo.weekdayIndex === weekdayIndex)
+              .map((wo) => editProgram(wo));
+          },
+        },
+        ["Edit Program"],
       ),
     ],
   );
@@ -168,34 +190,61 @@ function render() {
   ul.replaceChildren(root);
 }
 
-// let day = "";
+// TODO
+//Include index on supabase
+//Include updateWorkout, in the onclick with savePlan
+//Fix bugs from adding workout to workout program
+//weekdayIndex should be added to supabase too
+//Fix edit program
 
-function savePlan() {
-  //TODO
-  //Finish the saveplan function
-  //use try catch for update, read and delete - DONE
-  // let daySelector = document.querySelector("#select-button");
-  // let chosenDay = daySelector.value;
+function updateWorkout(index) {
+  // console.log(String(document.querySelector(`#workout${index}`).value));
 
-  for (const wo of workouts) {
-    if (wo.editing) {
-      wo.editing = false;
-      wo.weekdayIndex = weekdayIndex;
-    }
-  }
+  let name = document.querySelector(`#name${index}`).value;
+  let sets = document.querySelector(`#sets${index}`).value;
+  let reps = document.querySelector(`#reps${index}`).value;
+  let weight = document.querySelector(`#weight${index}`).value;
+  let editing = false;
+  const { id } = workouts[index];
 
-  // console.log(displayedWorkouts, "displayedWorkouts");
+  workouts[index].editing = false;
+  workouts[index].weekdayIndex = weekdayIndex;
 
-  // for (const workout of displayedWorkouts) {
-  //   workout.day = chosenDay;
-  // }
-  // console.log(workouts);
-  // showProgram(day);
-  // day = chosenDay;
-
-  // console.log(displayedWorkouts[day]);
-
-  render();
+  fetch("http://localhost:3000/update", {
+    method: "POST",
+    mode: "cors",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      id: id,
+      workout_name: name,
+      sets: sets,
+      reps: reps,
+      weight: weight,
+      index: index,
+      editing: editing,
+      weekday_index: weekdayIndex,
+    }),
+  })
+    .then((res) => {
+      return res.json;
+    })
+    .then((data) => {
+      confirmationMessage = "Workout Updated!";
+      render();
+      setTimeout(clearMessage, 1500);
+      setTimeout(render, 2000);
+    })
+    .catch(function (error) {
+      if (error) {
+        confirmationMessage = "Workout not updated!";
+        render();
+        setTimeout(clearMessage, 5000);
+        setTimeout(render, 5500);
+      }
+      console.log(error);
+    });
 }
 
 function showProgram(wo) {
@@ -206,19 +255,57 @@ function showProgram(wo) {
       element("span", { className: "workout-title" }, [`${wo.reps}`]),
       element("span", { className: "workout-title" }, [`${wo.weight}`]),
     ]),
-    element(
-      "button",
-      { className: "edit-button", onclick: () => editProgram },
-      ["Edit Program"],
-    ),
   ]);
 
   // console.log(workout);
   return program;
 }
-function editProgram() {
-  return "TODO";
+
+//TODO
+function editProgram(wo) {
+  wo.editing = true;
+  console.log(wo, "edit program");
+  render();
+
+  fetch("http://localhost:3000/update", {
+    method: "POST",
+    mode: "cors",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      id: wo.id,
+      workout_name: wo.workout_name,
+      sets: wo.sets,
+      reps: wo.reps,
+      weight: wo.weight,
+      index: wo.index,
+      editing: true,
+      weekday_index: wo.weekdayIndex,
+    }),
+  })
+    .then((res) => {
+      return res.json;
+    })
+    .then((data) => {
+      confirmationMessage = "Edit Workout!";
+      render();
+      setTimeout(clearMessage, 1500);
+      setTimeout(render, 2000);
+
+      console.log(data);
+    })
+    .catch(function (error) {
+      if (error) {
+        confirmationMessage = "Cannot edit Workout!";
+        render();
+        setTimeout(clearMessage, 5000);
+        setTimeout(render, 5500);
+      }
+      console.log(error);
+    });
 }
+
 function addWorkout() {
   const id = Math.floor(Math.random() * 1000000000);
   const workoutName = document.querySelector("#workout-input").value;
@@ -320,14 +407,18 @@ function showWorkout(index) {
 function clearMessage() {
   confirmationMessage = "";
 }
-
+//TO DO - From edit program and then Save workout - It doesn't automatically render when I update it.
 function saveWorkout(index) {
   // console.log(String(document.querySelector(`#workout${index}`).value));
   let name = document.querySelector(`#name${index}`).value;
   let sets = document.querySelector(`#sets${index}`).value;
   let reps = document.querySelector(`#reps${index}`).value;
   let weight = document.querySelector(`#weight${index}`).value;
+  // let editingFalse = false;
+
   const { id } = workouts[index];
+  workouts[index].weekdayIndex = weekdayIndex;
+
   workouts.splice(index, 1, {
     id: id,
     workout_name: name,
@@ -335,9 +426,16 @@ function saveWorkout(index) {
     reps: reps,
     weight: weight,
     editing: false,
+    weekdayIndex: weekdayIndex,
   });
+  console.log(workouts, "");
+  // (() => {
+  //   workouts.filter((wo) => wo.editing).map((_, i) => updateWorkout(i));
+  // })();
 
-  console.log({ index }, "check index");
+  render();
+
+  // showProgram(workouts);
   fetch("http://localhost:3000/update", {
     method: "POST",
     mode: "cors",
@@ -351,7 +449,8 @@ function saveWorkout(index) {
       reps: reps,
       weight: weight,
       index: index,
-      editing: editing,
+      editing: false,
+      weekday_index: weekdayIndex,
     }),
   })
     .then((res) => {
@@ -376,7 +475,6 @@ function saveWorkout(index) {
     });
 
   // showSaveMessage = true;
-  render();
   // document.querySelector("#savemessage-container").style = "";
   // console.log(document.querySelector("#savemessage-container").style);
   console.log(workouts);
@@ -405,7 +503,6 @@ function deleteWorkout(index) {
       render();
       setTimeout(clearMessage, 1500);
       setTimeout(render, 2000);
-      console.log(data);
     })
     .catch(function (error) {
       if (error) {
@@ -418,7 +515,6 @@ function deleteWorkout(index) {
     });
 
   render();
-  console.log(workouts);
 }
 
 //New features:
