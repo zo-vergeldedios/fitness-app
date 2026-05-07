@@ -87,7 +87,6 @@ function render() {
       element(
         "div",
         {
-          //x<13  ? "Child" : x<20 ? "Teenage" : x<30 ? "Twenties" : "Old people";
           id: "message-container",
           style: confirmationMessage.includes("not")
             ? "color: red;"
@@ -429,9 +428,6 @@ function saveWorkout(index) {
     weekdayIndex: weekdayIndex,
   });
   console.log(workouts, "");
-  // (() => {
-  //   workouts.filter((wo) => wo.editing).map((_, i) => updateWorkout(i));
-  // })();
 
   render();
 
